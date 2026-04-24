@@ -1,18 +1,32 @@
 import express from "express";
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000; // IMPORTANT for Render
+const port = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.static("public")); // serve frontend
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
 });
 
-// ✅ API route
+// ROOT ROUTE (important)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// ANALYZE ROUTE
 app.get("/analyze", async (req, res) => {
   try {
     const response = await fetch(
@@ -26,7 +40,15 @@ app.get("/analyze", async (req, res) => {
       messages: [
         {
           role: "user",
-          content: `Analyze this data:\n${JSON.stringify(data)}`
+          content: `
+Analyze this dataset and return:
+- Summary
+- Key insights
+- Use cases
+
+Data:
+${JSON.stringify(data)}
+`
         }
       ],
     });
@@ -41,15 +63,6 @@ app.get("/analyze", async (req, res) => {
   }
 });
 
-// ✅ Serve frontend
-app.use(express.static("."));
-
-// ✅ Root route
-app.get("/", (req, res) => {
-  res.sendFile("index.html", { root: "." });
-});
-
-// ✅ KEEP SERVER RUNNING
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

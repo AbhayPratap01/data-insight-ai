@@ -58,7 +58,9 @@
   <div id="analysis" class="card" style="display:none;"></div>
 
   <script>
-    async function loadData() {
+    let chartInstance; // global
+
+async function loadData() {
   const status = document.getElementById("status");
   const analysisDiv = document.getElementById("analysis");
 
@@ -78,16 +80,23 @@
       <p>${data.analysis.replace(/\n/g, "<br>")}</p>
     `;
 
-    // 📊 Chart
+    // 📊 Chart data
     const labels = data.data.map((_, i) => `Item ${i+1}`);
-    const values = data.data.map(item => item.message ? item.message.length : 0);
+    const values = data.data.map(item =>
+      item.message ? item.message.length : 0
+    );
 
     const ctx = document.getElementById("myChart");
 
-    new Chart(ctx, {
+    // destroy old chart if exists
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: labels,
+        labels,
         datasets: [{
           label: "Message Length",
           data: values
