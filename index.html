@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Data Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #3b82f6;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+      text-align: left;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .loading {
+      color: #facc15;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🚀 Apify + AI Analyzer</h1>
+
+  <button onclick="loadData()">Analyze Data</button>
+
+  <div id="status" class="loading"></div>
+
+  <div id="analysis" class="card" style="display:none;"></div>
+
+  <script>
+    async function loadData() {
+  const status = document.getElementById("status");
+  const analysisDiv = document.getElementById("analysis");
+
+  status.innerText = "⏳ Analyzing...";
+  analysisDiv.style.display = "none";
+
+  try {
+    const res = await fetch("/analyze");
+    const data = await res.json();
+
+    status.innerText = "✅ Done";
+
+    // Show analysis
+    analysisDiv.style.display = "block";
+    analysisDiv.innerHTML = `
+      <h2>🧠 AI Analysis</h2>
+      <p>${data.analysis.replace(/\n/g, "<br>")}</p>
+    `;
+
+    // 📊 Chart
+    const labels = data.data.map((_, i) => `Item ${i+1}`);
+    const values = data.data.map(item => item.message ? item.message.length : 0);
+
+    const ctx = document.getElementById("myChart");
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Message Length",
+          data: values
+        }]
+      }
+    });
+
+  } catch (err) {
+    status.innerText = "❌ Error";
+    console.error(err);
+  }
+}
+  </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
